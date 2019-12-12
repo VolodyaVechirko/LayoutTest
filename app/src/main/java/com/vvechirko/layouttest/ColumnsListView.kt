@@ -32,43 +32,35 @@ class ColumnsListView(context: Context, attrs: AttributeSet?) : LinearLayout(con
 
     fun setAdapter(adapter: Adapter<*>) {
         this.adapter = adapter.apply {
-            init(spanCount, columns)
+            init(columns)
         }
     }
 
+    abstract class Holder<T>(val view: View) {
+
+        var column: Int = 0
+        var position: Int = 0
+
+        abstract fun bind(item: T)
+    }
+
     abstract class Adapter<T> {
-        private var spanCount = 2
+        private var spanCount = 0
         private var columns: List<LinearLayout> = listOf()
         private var columnItems: List<MutableList<T>> = listOf()
 
-        abstract fun onCreateHolder(parent: ViewGroup): View
-        abstract fun onBindHolder(view: View, item: T)
+//        private var holders: List<Holder<T>> = listOf()
 
-        fun init(spanCount: Int, columns: List<LinearLayout>) {
-            this.spanCount = spanCount
+        abstract fun onCreateHolder(parent: ViewGroup): Holder<T>
+        abstract fun onBindHolder(holder: Holder<T>, item: T)
+
+        fun init(columns: List<LinearLayout>) {
+            this.spanCount = columns.size
             this.columns = columns
 
-            val columnItems = mutableListOf<MutableList<T>>()
-            for (i in 0 until spanCount) {
-                columnItems.add(mutableListOf())
-            }
-            this.columnItems = columnItems
-        }
-
-        fun setItems(list: List<T>) {
-            // split orders for columns
-            list.forEachIndexed { index, item ->
-                val span = index % spanCount
-                columnItems[span].add(item)
-            }
-
-            // populate containers of columns
-            for (i in 0 until spanCount) {
-                columns[i].removeAllViews()
-                columnItems[i].forEach { item ->
-                    val v = onCreateHolder(columns[i])
-                    onBindHolder(v, item)
-                    columns[i].addView(v)
+            this.columnItems = mutableListOf<MutableList<T>>().apply {
+                for (i in 0 until spanCount) {
+                    add(mutableListOf())
                 }
             }
         }
@@ -100,9 +92,10 @@ class ColumnsListView(context: Context, attrs: AttributeSet?) : LinearLayout(con
 
                     // add new item
                     columnItems[columnIndex].add(item)
-                    val v = onCreateHolder(columns[columnIndex])
-                    onBindHolder(v, item)
-                    columns[columnIndex].addView(v)
+                    val holder = onCreateHolder(columns[columnIndex])
+                    holder.view.tag = holder
+                    onBindHolder(holder, item)
+                    columns[columnIndex].addView(holder.view)
                 }
             }
         }
@@ -123,7 +116,8 @@ class ColumnsListView(context: Context, attrs: AttributeSet?) : LinearLayout(con
                 val position = columnItems[i].indexOf(item)
                 if (position != -1) {
                     columnItems[i].set(position, item)
-                    onBindHolder(columns[i].getChildAt(position), item)
+                    val holder = columns[i].getChildAt(position).tag as Holder<T>
+                    onBindHolder(holder, item)
                     return
                 }
             }

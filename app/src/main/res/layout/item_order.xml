@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="120dp"
     android:layout_margin="4dp"
-    android:background="#CCC"
+    android:background="@color/item_bg"
     android:clickable="true"
     android:focusable="true"
     android:gravity="center"

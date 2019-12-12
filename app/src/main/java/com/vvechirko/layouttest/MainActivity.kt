@@ -36,12 +36,6 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-data class Order(val id: String, var status: String = "new") {
-    override fun toString(): String = id
-    override fun hashCode(): Int = id.hashCode()
-    override fun equals(other: Any?): Boolean = if (other is Order) other.id == id else false
-}
-
 class Adapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val orders = mutableListOf<Any>()

@@ -1,6 +1,5 @@
 package com.vvechirko.layouttest
 
-import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
@@ -23,27 +22,7 @@ class TestActivity : AppCompatActivity() {
             list.add(Order((i + 1).toString()))
         }
 
-        val adapter = object : ColumnsListView.Adapter<Order>() {
-            override fun onCreateHolder(parent: ViewGroup): View {
-                return LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_order, parent, false).also {
-                        it.layoutParams.height = 3 * Random.nextInt(100, 200)
-                    }
-            }
-
-            override fun onBindHolder(view: View, item: Order) {
-                (view as TextView).text = item.id
-                view.setOnClickListener {
-                    if (item.status == "done") {
-                        removeItem(item)
-                    } else {
-                        it.setBackgroundColor(Color.CYAN)
-                        item.status = "done"
-                        updateItem(item)
-                    }
-                }
-            }
-        }
+        val adapter = ColumnsAdapter()
         listView.setAdapter(adapter)
 
         adapter.addItems(list.subList(0, 10))
@@ -55,5 +34,38 @@ class TestActivity : AppCompatActivity() {
         Handler().postDelayed({
             adapter.addItems(list.subList(14, 20))
         }, 20000)
+    }
+}
+
+class ColumnsAdapter : ColumnsListView.Adapter<Order>() {
+    override fun onCreateHolder(parent: ViewGroup): ColumnsListView.Holder<Order> {
+        return Holder(
+            LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_order, parent, false)
+        )
+    }
+
+    override fun onBindHolder(holder: ColumnsListView.Holder<Order>, item: Order) {
+        holder.bind(item)
+        holder.view.setOnClickListener {
+            if (item.status == "done") {
+                removeItem(item)
+            } else {
+                item.status = "done"
+                updateItem(item)
+            }
+        }
+    }
+
+    class Holder(view: View) : ColumnsListView.Holder<Order>(view) {
+        init {
+            // simulate different heights
+            view.layoutParams.height = 3 * Random.nextInt(100, 200)
+        }
+
+        override fun bind(item: Order) {
+            (view as TextView).text = item.id
+            view.isActivated = item.status == "done"
+        }
     }
 }
